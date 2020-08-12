@@ -1,8 +1,12 @@
 package com.example.sv1;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -12,6 +16,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -40,19 +45,36 @@ public class MainActivity extends AppCompatActivity {
         KhoiTao();
         adapter_khoa = new ArrayAdapter(this,android.R.layout.simple_spinner_item,dataKhoa);
         spKhoa.setAdapter(adapter_khoa);
-
+//        moi vao phai hien thi du lieu cho trong sql
+//        adapter_sv = new CustomAdapter(this,R.layout.listview_item,datasv);
+//        lvDanhSach.setAdapter(adapter_sv);
+        //sql
+        final DBSinhVien dbSinhVien = new DBSinhVien(this);
+        datasv = dbSinhVien.LayDL();
         adapter_sv = new CustomAdapter(this,R.layout.listview_item,datasv);
         lvDanhSach.setAdapter(adapter_sv);
 
         btnThem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+//                get sinh vien
                 SinhVien sinhVien = new SinhVien();
                 sinhVien.setHoTen(txtHoTen.getText().toString());
                 sinhVien.setGioiTinh(radNam.isChecked());
                 sinhVien.setKhoa(spKhoa.getSelectedItem().toString());
-                datasv.add(sinhVien);
-                adapter_sv.notifyDataSetChanged();
+
+//        sqlite
+                DBSinhVien dbSinhVien = new DBSinhVien(getApplicationContext());
+                dbSinhVien.Them(sinhVien);
+//no sqlite
+//                datasv.add(sinhVien);
+//                adapter_sv.notifyDataSetChanged();
+
+//                hien thi dulieu
+                datasv = dbSinhVien.LayDL();
+                adapter_sv = new CustomAdapter(getApplicationContext(),R.layout.listview_item,datasv);
+                lvDanhSach.setAdapter(adapter_sv);
+
             }
         });
         lvDanhSach.setOnItemClickListener(new AdapterView.OnItemClickListener(){
@@ -73,7 +95,18 @@ public class MainActivity extends AppCompatActivity {
         btnXoa.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+//                datasv.remove(index);
+//                sql
+                //                get sinh vien
+                SinhVien sinhVien = new SinhVien();
+                sinhVien.setHoTen(txtHoTen.getText().toString());
+                sinhVien.setGioiTinh(radNam.isChecked());
+                sinhVien.setKhoa(spKhoa.getSelectedItem().toString());
+
+                DBSinhVien dbSinhVien = new DBSinhVien(getApplicationContext());
+                dbSinhVien.Xoa(sinhVien);
                 datasv.remove(index);
+
                 adapter_sv.notifyDataSetChanged();
             }
         });
@@ -85,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 sinhVien.setGioiTinh(radNam.isChecked());
                 sinhVien.setKhoa(spKhoa.getSelectedItem().toString());
                 adapter_sv.notifyDataSetChanged();
+                dbSinhVien.Sua(sinhVien);
             }
         });
         btnClear.setOnClickListener(new View.OnClickListener() {
@@ -112,5 +146,22 @@ public class MainActivity extends AppCompatActivity {
         btnSua = findViewById(R.id.btnSua);
         btnClear = findViewById(R.id.btnClear);
         lvDanhSach = findViewById(R.id.lvDanhSach);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_actionbar,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.mnDoc:
+                Toast.makeText(getApplication(),"Doc",Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(MainActivity.this, MainActivityDanhSach.class);
+                startActivity(intent);
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
